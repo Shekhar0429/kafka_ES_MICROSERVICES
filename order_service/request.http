@@ -1,0 +1,7 @@
+POST http://localhost:9000/api/cart
+
+Content-Type: "application/json"
+
+{
+    "customerId": 123
+}

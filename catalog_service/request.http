@@ -1,0 +1,33 @@
+POST   http://localhost:8000/products
+Content-Type: application/json
+
+{
+    "name":"product name",
+    "description":"product description",
+    "stock":100,
+    "price":1800
+}
+
+### Get products
+GET   http://localhost:8000/products?limit=10&offset=0
+Content-Type: application/json
+
+{
+    "name":"product name",
+    "description":"product description",
+    "stock":100,
+    "price":1800
+}
+
+### Get product by id
+GET   http://localhost:8000/products/1
+
+### Update product
+PATCH  http://localhost:8000/products/1
+Content-Type: application/json
+
+{
+    "name":"updated product name",
+    "description":"updated product description",
+    "price":20
+}

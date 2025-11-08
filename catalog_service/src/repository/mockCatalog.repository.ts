@@ -1,0 +1,24 @@
+import { ICatalogRepository } from "../interface/catalogRepository.interface";
+import { Product } from "../models/product.model";
+
+export class MockCatalogRepository implements ICatalogRepository {
+  findByIds(ids: number[]): Promise<Product[]> {
+    throw new Error("Method not implemented.");
+  }
+  create(data: Product): Promise<Product> {
+    const mockProduct = { ...data, id: Date.now() } as Product;
+    return Promise.resolve(mockProduct);
+  }
+  update(data: Product): Promise<Product> {
+    return Promise.resolve(data);
+  }
+  delete(id: any) {
+    return Promise.resolve({id});
+  }
+  find(limit: number, offset: number): Promise<Product[]> {
+    return Promise.resolve([]);
+  }
+  findOne(id: number): Promise<Product> {
+    return Promise.resolve({ id } as unknown as Product);
+  }
+}

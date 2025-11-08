@@ -1,0 +1,104 @@
+version: "2"
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:9092"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    ports:
+      - "9092:9092"
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.1
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      - node.name=elasticsearch
+      - bootstrap.memory_lock=true
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+
+  catalog_db_server:
+    image: "postgres:14.0"
+    ports:
+      - "5439:5432"
+    deploy:
+      #This block defines how your service should behave when deployed in a Swarm cluster (deployment strategy, scaling, resources, etc.)
+      mode: replicated #Defines how the service runs in Swarm.
+      replicas: 1
+        #There are two modes:
+        #Mode	Description
+        #replicated	Runs multiple instances (replicas) of the same container across the cluster.
+        #global	Runs exactly one container per node in the cluster.
+    environment:
+      POSTGRES_USER: catalog_db
+      POSTGRES_PASSWORD: catalog_db_password
+      POSTGRES_DB: catalog_service
+    volumes:
+      - ./db-data/catalog_db_server/:/var/lib/postgresql/data
+  order_db_server:
+    image: "postgres:14.0"
+    ports:
+      - "5433:5432"
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      POSTGRES_USER: order_db
+      POSTGRES_PASSWORD: order_db_password
+      POSTGRES_DB: order_service
+    volumes:
+      - ./db-data/order_db_server/:/var/lib/postgresql/data
+
+  user_db_server:
+    image: "postgres:14.0"
+    ports:
+      - "5442:5432"
+    deploy:
+      mode: replicated
+      replicas: 1
+    environment:
+      POSTGRES_USER: user_db
+      POSTGRES_PASSWORD: user_db_password
+      POSTGRES_DB: user_service
+    volumes:
+      - ./db-data/user_db_server/:/var/lib/postgresql/data
+
+  catelogService:
+    build:
+      context: ./catalog-service
+      dockerfile: dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - catalog_db_server
+      - kafka
+      - elasticsearch
+
+volumes:
+  esdata:
+    driver: local

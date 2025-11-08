@@ -1,0 +1,43 @@
+import { STATUS_CODES } from "./status-code";
+class BaseError extends Error {
+  public readonly name: string;
+  public readonly status: number;
+  public readonly message: string;
+
+  constructor(name: string, status: number, description: string) {
+    super(description);
+    this.name = name;
+    this.status = status;
+    this.message = description;
+    Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain
+    Error.captureStackTrace(this);
+  }
+}
+
+// 500 Internal Server Error
+export class APIError extends BaseError {
+  constructor(description = "Internal Server Error") {
+    super("APIError", STATUS_CODES.INTERNAL_SERVER_ERROR, description);
+  }
+}
+
+// 400 Validation Error
+export class ValidationError extends BaseError {
+  constructor(description = "bad request") {
+    super("bad request", STATUS_CODES.BAD_REQUEST, description);
+  }
+}
+
+// 401 Authorize Error
+export class AuthorizeError extends BaseError {
+  constructor(description = "access denied") {
+    super("access denied", STATUS_CODES.UNAUTHORIZED, description);
+  }
+}
+
+// 404 Not Found Error
+export class NotFoundError extends BaseError {
+  constructor(description = "resource not found") {
+    super(description, STATUS_CODES.NOT_FOUND, description);
+  }
+}
